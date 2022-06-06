@@ -1,4 +1,4 @@
-package com.example.dbcontrollerapi;
+package Proxy;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
