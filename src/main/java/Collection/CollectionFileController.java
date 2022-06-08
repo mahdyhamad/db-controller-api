@@ -8,8 +8,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.io.*;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class CollectionFileController {
 
@@ -83,6 +82,31 @@ public class CollectionFileController {
         }
         if (documentIndex != -1){
             documents.remove(documentIndex);
+            writeDocumentsToCollection(collectionPath, documents);
+        }
+    }
+
+    public static void updateDocument(String db, String collection, String id, HashMap<String, Object> data) throws IOException, ParseException {
+        String collectionPath = PathManager.getCollectionPath(db, collection);
+        JSONArray documents = getDocuments(collectionPath);
+        int documentIndex = -1;
+        for (int i=0; i < documents.size(); i++){
+            JSONObject document = (JSONObject) documents.get(i);
+            if (Objects.equals(document.get("_id").toString(), id)){
+                documentIndex = i;
+                break;
+            }
+        }
+
+        if (documentIndex != -1){
+            JSONObject updatedObject = (JSONObject) documents.get(documentIndex);
+            for (Map.Entry<String, Object> entry : data.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                // do not allow _id edit
+                if (!Objects.equals(key, "_id"))
+                    updatedObject.put(key, value);
+            }
             writeDocumentsToCollection(collectionPath, documents);
         }
     }

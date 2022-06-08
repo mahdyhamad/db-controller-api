@@ -20,7 +20,7 @@ public class WriteController {
 
     // Document related
     @PostMapping(value = "create-document/{db}/{collection}/", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public String addDocument(
+    public void addDocument(
         @PathVariable String db, @PathVariable String collection,
         @RequestBody HashMap<String, Object> data
     ){
@@ -34,7 +34,6 @@ public class WriteController {
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
         }
-        return "hi";
     }
 
     @PostMapping(value = "update-document/{db}/{collection}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -44,7 +43,17 @@ public class WriteController {
         assert DatabaseFileController.databaseExists(db): "Database does not exist";
         assert CollectionFileController.collectionExists(collection): "Collection does not exist";
 
-        // TODO: implement functionality
+        String id = (String) data.getOrDefault("id", null);
+        assert id != null: "Document id was not provided";
+        data.remove("id");
+
+        try {
+            CollectionFileController.updateDocument(
+                    db, collection, id, data
+            );
+        } catch (IOException | ParseException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @PostMapping("delete-document/{db}/{collection}")
