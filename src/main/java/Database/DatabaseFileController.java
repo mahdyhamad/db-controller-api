@@ -2,6 +2,7 @@ package Database;
 
 import java.io.File;
 import Config.Configuration;
+import Config.PathManager;
 
 public class DatabaseFileController {
     public static String getDatabaseDir(String name){
@@ -40,7 +41,18 @@ public class DatabaseFileController {
     }
 
     public static void deleteDatabase(String name){
+        String dbPath = PathManager.getDatabasePath(name);
+        File dbDir = new File(dbPath);
 
+        if (dbDir.isDirectory()){
+            String[]entries = dbDir.list();
+            for(String s: entries){
+                File currentFile = new File(dbDir.getPath(),s);
+                currentFile.delete();
+            }
+            if (dbDir.delete())
+                System.out.println("Database " + name + " deleted");
+        }
     }
 
 

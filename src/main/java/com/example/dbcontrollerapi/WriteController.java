@@ -13,13 +13,14 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Map;
 import java.io.IOException;
+import java.util.Objects;
 
 
 @RestController
 public class WriteController {
 
     // Document related
-    @PostMapping(value = "create-document/{db}/{collection}/", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "add-document/{db}/{collection}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void addDocument(
         @PathVariable String db, @PathVariable String collection,
         @RequestBody HashMap<String, Object> data
@@ -87,16 +88,37 @@ public class WriteController {
         }
     }
 
-    @PostMapping("update-collection/{db}/{collection}")
-    public void updateCollection(@PathVariable String db, @PathVariable String collection){
+    @PostMapping(value = "update-collection/{db}/{collection}", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public void updateCollection(
+        @PathVariable String db, @PathVariable String collection, @RequestBody HashMap<String, Object> data
+    ){
         assert DatabaseFileController.databaseExists(db): "Database does not exist";
         assert CollectionFileController.collectionExists(collection): "Collection does not exist";
+
+        // update index data
+        // update collection name
+        String updatedName = (String) data.getOrDefault("name", null);
+        if (updatedName != null){
+            try {
+                CollectionFileController.renameCollection(db, collection, updatedName);
+            }
+            catch (Exception e){
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     @PostMapping("delete-collection/{db}/{collection}")
     public void deleteCollection(@PathVariable String db, @PathVariable String collection){
         assert DatabaseFileController.databaseExists(db): "Database does not exist";
         assert CollectionFileController.collectionExists(collection): "Collection does not exist";
+
+        try{
+            CollectionFileController.deleteCollection(db, collection);
+        }
+        catch (Exception e){
+            throw new RuntimeException(e);
+        }
 
     }
 
@@ -105,20 +127,40 @@ public class WriteController {
     @PostMapping("create-db/{db}")
     public void createDatabase(@PathVariable String db){
         assert !DatabaseFileController.databaseExists(db): "Database already exist";
+        try{
+            DatabaseFileController.createDatabase(db);
+        } catch (Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
-    @PostMapping("update-db/{db}")
+    @PostMapping(value = "update-db/{db}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void updateDatabase(@PathVariable String db, @RequestBody Map<String, String> data){
         assert DatabaseFileController.databaseExists(db): "Database does not exist";
-        if (data.get("name") != null){
-            DatabaseFileController.renameDatabase(db, data.get("name"));
+        String updatedName = data.getOrDefault("name", null);
+        if (updatedName != null){
+            try{
+                DatabaseFileController.renameDatabase(db, updatedName);
+            }
+            catch (Exception e){
+                throw new RuntimeException(e);
+            }
         }
     }
 
     @PostMapping("delete-db/{db}")
     public void deleteDatabase(@PathVariable String db){
+        // do not allow auth database deletion
+        if (Objects.equals(db, "auth")){
+            return;
+        }
         assert DatabaseFileController.databaseExists(db): "Database does not exist";
-        DatabaseFileController.deleteDatabase(db);
+        try {
+            DatabaseFileController.deleteDatabase(db);
+        }
+        catch (Exception e){
+            throw new RuntimeException(e);
+        }
     }
 
 

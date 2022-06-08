@@ -34,6 +34,26 @@ public class CollectionFileController {
         }
     }
 
+    public static void renameCollection(String db, String collection, String updatedName){
+        String collectionPath = PathManager.getCollectionPath(db, collection);
+        File collectionDir = new File(collectionPath);
+
+        assert collectionDir.isDirectory(): "Collection does not exist";
+        File newCollectionDir = new File(collectionDir.getParent() + "/" + updatedName + ".json");
+        collectionDir.renameTo(newCollectionDir);
+    }
+    public static void updateCollection(String db, String collection, HashMap<String, Object> data){
+
+    }
+
+    public static void deleteCollection(String db, String collection){
+        String collectionPath = PathManager.getCollectionPath(db, collection);
+        File collectionDir = new File(collectionPath);
+        if (collectionDir.delete()){
+            System.out.println("Collection " + collection + " deleted");
+        }
+    }
+
     private static JSONArray getDocuments(String collectionPath) throws IOException, ParseException {
         JSONParser parser = new JSONParser();
         JSONObject collection = (JSONObject) parser.parse(new FileReader(collectionPath));
@@ -48,6 +68,7 @@ public class CollectionFileController {
         file.write(collection.toJSONString());
         file.flush();
     }
+
 
     private static boolean documentExists(JSONArray documents, String id){
         for (Object document : documents) {
