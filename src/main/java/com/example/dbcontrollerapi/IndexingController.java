@@ -5,14 +5,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class IndexingController {
 
-//    @PostMapping("")
-//    public void indexProperty(){
-//        // TODO: implement functionality
-//    }
-//
-//    @PostMapping("")
-//    public void removeIndex(){
-//        // TODO: implement functionality
-//    }
+    @PostMapping("add-index/{db}/{collection}")
+    public void addIndex(){
+        // update collection json file
+        // notify RORs
+    }
+
+    @PostMapping("delete-index/{db}/{collection}")
+    public void deleteIndex(){
+        // update collection json file
+        // notify RORs
+    }
 
 }

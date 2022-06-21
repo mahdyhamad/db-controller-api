@@ -4,15 +4,22 @@ import java.util.List;
 import java.util.Objects;
 
 public class User {
+
+    String _id;
     String username;
     String password;
     List<String> roles;
 
 
-    public User(String username, String password, List<String> roles){
+    public User(String _id, String username, String password, List<String> roles){
+        this._id = _id;
         this.username = username;
         this.roles = roles;
         this.password = password;
+    }
+
+    public String get_id() {
+        return _id;
     }
 
     public String getUsername() {
@@ -24,7 +31,7 @@ public class User {
     }
 
     public boolean authenticate(String password){
-        return this.password == password;
+        return Objects.equals(this.password, password);
     }
 
     public void changePassword(String oldPassword, String newPassword){

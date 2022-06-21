@@ -1,23 +1,27 @@
 package com.example.dbcontrollerapi;
 
+import Utils.OnResourceUpdate;
+import Connection.ConnectionManager;
 import Database.DatabaseFileController;
 import Collection.CollectionFileController;
 
-import org.json.simple.parser.ParseException;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.HashMap;
 import java.util.Map;
-import java.io.IOException;
 import java.util.Objects;
+import java.util.HashMap;
+import java.io.IOException;
+import org.springframework.http.MediaType;
+import org.json.simple.parser.ParseException;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.annotation.Autowired;
+
 
 
 @RestController
 public class WriteController {
+
+    @Autowired
+    private ApplicationContext context;
 
     // Document related
     @PostMapping(value = "add-document/{db}/{collection}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -25,6 +29,7 @@ public class WriteController {
         @PathVariable String db, @PathVariable String collection,
         @RequestBody HashMap<String, Object> data
     ){
+        // TODO: auth
         assert DatabaseFileController.databaseExists(db): "Database does not exist";
         assert CollectionFileController.collectionExists(collection): "Collection does not exist";
 
@@ -45,7 +50,9 @@ public class WriteController {
         assert CollectionFileController.collectionExists(collection): "Collection does not exist";
 
         String id = (String) data.getOrDefault("id", null);
-        assert id != null: "Document id was not provided";
+        if (id == null){
+            throw new RuntimeException("Document id was not provided");
+        }
         data.remove("id");
 
         try {
@@ -55,20 +62,33 @@ public class WriteController {
         } catch (IOException | ParseException e) {
             throw new RuntimeException(e);
         }
+
+        ConnectionManager connectionManager = context.getBean("getConnectionManager", ConnectionManager.class);
+        try{
+            // TODO: get resource path
+            OnResourceUpdate.notifyReadOnlyReplicas("test", connectionManager.getConnectionsUrls());
+            System.out.println("notified");
+        }
+        catch (Exception e){
+            System.out.println(e);
+        }
     }
 
     @PostMapping("delete-document/{db}/{collection}")
     public void deleteDocument(
         @PathVariable String db, @PathVariable String collection, @RequestBody HashMap<String, String> data
     ){
+        // TODO: add auth
+
         assert DatabaseFileController.databaseExists(db): "Database does not exist";
         assert CollectionFileController.collectionExists(collection): "Collection does not exist";
 
-        String id = data.getOrDefault("_id", null);
+        String id = data.getOrDefault("id", null);
         assert id != null: "Document id was not provided";
 
         try {
             CollectionFileController.deleteDocument(db, collection, id);
+            // TODO: notify RORs
         }
         catch (IOException | ParseException e) {
             throw new RuntimeException(e);
@@ -79,10 +99,15 @@ public class WriteController {
     // Collection Related
     @PostMapping("create-collection/{db}/{collection}")
     public void createCollection(@PathVariable String db, @PathVariable String collection){
+
+        // TODO: add auth
+
         assert DatabaseFileController.databaseExists(db): "Database does not exist";
         assert !CollectionFileController.collectionExists(collection): "Collection already exist";
         try{
             CollectionFileController.createCollection(db,collection);
+            // TODO: add new resource to acl
+            // TODO: notify RORs
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -92,6 +117,9 @@ public class WriteController {
     public void updateCollection(
         @PathVariable String db, @PathVariable String collection, @RequestBody HashMap<String, Object> data
     ){
+
+        // TODO: add auth
+
         assert DatabaseFileController.databaseExists(db): "Database does not exist";
         assert CollectionFileController.collectionExists(collection): "Collection does not exist";
 
@@ -101,6 +129,7 @@ public class WriteController {
         if (updatedName != null){
             try {
                 CollectionFileController.renameCollection(db, collection, updatedName);
+                // TODO: notify RORs
             }
             catch (Exception e){
                 throw new RuntimeException(e);
@@ -110,18 +139,21 @@ public class WriteController {
 
     @PostMapping("delete-collection/{db}/{collection}")
     public void deleteCollection(@PathVariable String db, @PathVariable String collection){
+        // TODO: add auth
+
         assert DatabaseFileController.databaseExists(db): "Database does not exist";
         assert CollectionFileController.collectionExists(collection): "Collection does not exist";
 
         try{
             CollectionFileController.deleteCollection(db, collection);
+            // TODO: notify RORs
+            // TODO: remove resource from ACL
         }
         catch (Exception e){
             throw new RuntimeException(e);
         }
 
     }
-
 
     // Database Related
     @PostMapping("create-db/{db}")
@@ -136,6 +168,9 @@ public class WriteController {
 
     @PostMapping(value = "update-db/{db}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public void updateDatabase(@PathVariable String db, @RequestBody Map<String, String> data){
+
+        // TODO: add auth
+
         assert DatabaseFileController.databaseExists(db): "Database does not exist";
         String updatedName = data.getOrDefault("name", null);
         if (updatedName != null){
@@ -150,6 +185,9 @@ public class WriteController {
 
     @PostMapping("delete-db/{db}")
     public void deleteDatabase(@PathVariable String db){
+
+        // TODO: add auth
+
         // do not allow auth database deletion
         if (Objects.equals(db, "auth")){
             return;
@@ -161,6 +199,18 @@ public class WriteController {
         catch (Exception e){
             throw new RuntimeException(e);
         }
+    }
+
+    // Indexing Related
+    @PostMapping("add-index/{db}/{collection}")
+    public void addIndex(@PathVariable String db, @PathVariable String collection){
+        if (!DatabaseFileController.databaseExists(db)){
+            throw new RuntimeException("Database does not exist");
+        }
+        if (!CollectionFileController.collectionExists(collection)){
+            throw new RuntimeException("Collection does not exist");
+        }
+        // TODO: implement functionality
     }
 
 

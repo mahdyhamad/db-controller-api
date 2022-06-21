@@ -1,49 +1,77 @@
 package com.example.dbcontrollerapi;
 
+import Auth.AuthController;
 import Auth.AuthManager;
 import Connection.ConnectionManager;
-import com.github.dockerjava.api.DockerClient;
-import com.github.dockerjava.api.command.CreateContainerResponse;
-import com.github.dockerjava.api.model.*;
-import com.github.dockerjava.core.DockerClientBuilder;
+import Controller.DBController;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import javax.sound.sampled.Port;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @RestController
 @SpringBootApplication
 public class DbControllerApiApplication {
 	/* the main controller that receives requests from client */
 
-	List<String> readOnlyContainerIds;
 	ConnectionManager connectionManager;
 	AuthManager authManager;
+	DBController dbController;
+	AuthController authController;
+
 
 	public DbControllerApiApplication(){
 		connectionManager = new ConnectionManager();
 		authManager = new AuthManager();
-		connectionManager.killContainers("db-reado-api");
-		connectionManager.createContainer();
+		dbController = new DBController();
+		authController = new AuthController();
+		try {
+			connectionManager.killContainers("db-reado-api");
+			connectionManager.createConnection();
+		} catch (Exception e){}
 	}
+	@Bean
+	DBController getDBController(){
+		return this.dbController;
+	}
+
+	@Bean
+	AuthController getAuthController(){
+		return this.authController;
+	}
+
+	@Bean
+	ConnectionManager getConnectionManager(){
+		return this.connectionManager;
+	}
+
 	public static void main(String[] args) {
 		SpringApplication.run(DbControllerApiApplication.class, args);
 	}
 
-	@GetMapping("getConnection")
-	public String getConnection(){
+	@GetMapping("getReadConnection")
+	public String getReadConnection(){
+		// TODO: add auth
 		return this.connectionManager.getReadConnection();
 	}
 
 	@PostMapping("scaleUp")
 	public int scaleUp(){
-		this.connectionManager.createContainer();
+		// TODO: add auth
+		this.connectionManager.createConnection();
 		return 1;
+	}
+
+	@PostMapping("reload-resource")
+	public int onResourceUpdate(){
+		// TODO: add auth
+		return this.dbController.loadDatabase()? 1: 0;
 	}
 }

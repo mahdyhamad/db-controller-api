@@ -12,6 +12,8 @@ import java.util.*;
 
 public class CollectionFileController {
 
+    private String collectionPath;
+
     public static boolean collectionExists(String collectionPath){
         File collectionFile = new File(collectionPath);
         return collectionFile.exists();
@@ -29,6 +31,7 @@ public class CollectionFileController {
             FileWriter file = new FileWriter(collectionPath);
             JSONArray initial = new JSONArray();
             rootObject.put("documents", initial);
+            rootObject.put("indexes", initial);
             file.write(rootObject.toJSONString());
             file.flush();
         }
@@ -96,7 +99,7 @@ public class CollectionFileController {
         int documentIndex = -1;
         for (int i=0; i < documents.size(); i++){
             JSONObject document = (JSONObject) documents.get(i);
-            if (document.get("_id") == id){
+            if (Objects.equals(document.get("_id").toString(), id)){
                 documentIndex = i;
                 break;
             }
@@ -130,6 +133,53 @@ public class CollectionFileController {
             }
             writeDocumentsToCollection(collectionPath, documents);
         }
+    }
+
+    CollectionFileController(String collectionPath){
+        this.collectionPath = collectionPath;
+    }
+
+    public JSONArray getAllDocuments() throws IOException, ParseException{
+        JSONParser parser = new JSONParser();
+        JSONObject collection = (JSONObject) parser.parse(new FileReader(collectionPath));
+        JSONArray documentsFromFile = (JSONArray) collection.getOrDefault("documents", new JSONArray());
+        return documentsFromFile;
+    }
+
+    public JSONObject getDocumentFromFile(String id) throws IOException, ParseException {
+        JSONParser parser = new JSONParser();
+        JSONObject collection = (JSONObject) parser.parse(new FileReader(collectionPath));
+        JSONArray documentsFromFile = (JSONArray) collection.getOrDefault("documents", new JSONArray());
+        for (int i=0; i< documentsFromFile.size(); i++){
+            JSONObject o = (JSONObject) documentsFromFile.get(i);
+            String _id = (String) o.get("_id");
+            if (Objects.equals(_id, id)){
+                return o;
+            }
+        }
+        return null;
+    }
+
+
+    // indexes
+
+    public ArrayList<String> getIndexes() throws IOException, ParseException {
+        JSONParser parser = new JSONParser();
+        JSONObject collection = (JSONObject) parser.parse(new FileReader(collectionPath));
+        return (ArrayList<String>) collection.getOrDefault("indexes", null);
+
+    }
+
+    public void createIndex(String field) throws IOException, ParseException {
+        JSONParser parser = new JSONParser();
+        FileWriter file = new FileWriter(collectionPath);
+
+        JSONObject collection = (JSONObject) parser.parse(new FileReader(collectionPath));
+        JSONArray indexesFromFile = (JSONArray) collection.getOrDefault("indexes", new JSONArray());
+        indexesFromFile.add(field);
+        collection.put("indexes", indexesFromFile);
+        file.write(collection.toJSONString());
+        file.flush();
     }
 
 }
