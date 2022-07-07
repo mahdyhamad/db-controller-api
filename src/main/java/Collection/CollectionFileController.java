@@ -31,6 +31,7 @@ public class CollectionFileController {
             FileWriter file = new FileWriter(collectionPath);
             JSONArray initial = new JSONArray();
             rootObject.put("documents", initial);
+            initial.add("_id");
             rootObject.put("indexes", initial);
             file.write(rootObject.toJSONString());
             file.flush();
@@ -172,11 +173,27 @@ public class CollectionFileController {
 
     public void createIndex(String field) throws IOException, ParseException {
         JSONParser parser = new JSONParser();
-        FileWriter file = new FileWriter(collectionPath);
-
         JSONObject collection = (JSONObject) parser.parse(new FileReader(collectionPath));
+        FileWriter file = new FileWriter(collectionPath);
         JSONArray indexesFromFile = (JSONArray) collection.getOrDefault("indexes", new JSONArray());
         indexesFromFile.add(field);
+        collection.put("indexes", indexesFromFile);
+        file.write(collection.toJSONString());
+        file.flush();
+    }
+
+    public void deleteIndex(String field) throws IOException, ParseException {
+        JSONParser parser = new JSONParser();
+        JSONObject collection = (JSONObject) parser.parse(new FileReader(collectionPath));
+        FileWriter file = new FileWriter(collectionPath);
+
+        JSONArray indexesFromFile = (JSONArray) collection.getOrDefault("indexes", new JSONArray());
+        for (int i=0; i<indexesFromFile.size(); i++){
+            if (Objects.equals(indexesFromFile.get(i).toString(), field)){
+                indexesFromFile.remove(i);
+                break;
+            }
+        }
         collection.put("indexes", indexesFromFile);
         file.write(collection.toJSONString());
         file.flush();

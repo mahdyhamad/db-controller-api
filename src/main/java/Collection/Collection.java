@@ -18,12 +18,12 @@ public class Collection {
         return name;
     }
 
-    public void createIndex(String field){
-        this.controller.createIndex(field);
+    public boolean createIndex(String field){
+        return this.controller.createIndex(field);
     }
 
-    public void removeIndex(String field){
-
+    public boolean deleteIndex(String field){
+        return this.controller.deleteIndex(field);
     }
 
     public ArrayList<JSONObject> find(String field, String value){

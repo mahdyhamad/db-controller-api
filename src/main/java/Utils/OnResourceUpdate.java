@@ -27,8 +27,6 @@ public class OnResourceUpdate {
             out.close();
             int status = con.getResponseCode();
 
-            System.out.println("status == " + status);
-
             Reader streamReader = null;
 
             if (status > 299) {

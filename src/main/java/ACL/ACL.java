@@ -42,8 +42,6 @@ public class ACL {
             JSONObject ownerDetailsFromFile = (JSONObject) aclEntryObjFromFile.get("owner");
             JSONArray permissionsDetailsFromFile = (JSONArray) aclEntryObjFromFile.get("permissions");
 
-            System.out.println(permissionsDetailsFromFile);
-
             int resourceInode = Integer.parseInt(resourceDetailsFromFile.get("Inode").toString());
             String resourceType = resourceDetailsFromFile.get("type").toString();
             ArrayList<Permission> permissions = new ArrayList<>();

@@ -75,9 +75,8 @@ public class CollectionController {
             throw new RuntimeException(e);
         }
 
-        for (String indexedField : indexes) {
-            if (Objects.equals(indexedField, field))
-                return false;
+        if (indexes.contains(field)){
+            return false;
         }
 
         try{
@@ -97,6 +96,28 @@ public class CollectionController {
             throw new RuntimeException(e);
         }
 
+        return true;
+    }
+    public boolean deleteIndex(String field) {
+        ArrayList<String> indexes;
+        try {
+            indexes = fileController.getIndexes();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
+        if (!indexes.contains(field)){
+            return false;
+        }
+
+        try{
+            fileController.deleteIndex(field);
+        }
+        catch (Exception e){
+            throw new RuntimeException(e);
+        }
+
+        this.indexedFields.removeElement(field);
         return true;
     }
 

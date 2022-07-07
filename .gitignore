@@ -34,4 +34,4 @@ build/
 
 
 # database files
-#/db/data/*
+/db/data/*

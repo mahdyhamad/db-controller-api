@@ -201,18 +201,4 @@ public class WriteController {
         }
     }
 
-    // Indexing Related
-    @PostMapping("add-index/{db}/{collection}")
-    public void addIndex(@PathVariable String db, @PathVariable String collection){
-        if (!DatabaseFileController.databaseExists(db)){
-            throw new RuntimeException("Database does not exist");
-        }
-        if (!CollectionFileController.collectionExists(collection)){
-            throw new RuntimeException("Collection does not exist");
-        }
-        // TODO: implement functionality
-    }
-
-
-
 }

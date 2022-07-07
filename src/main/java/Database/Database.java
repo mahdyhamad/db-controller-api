@@ -1,19 +1,20 @@
 package Database;
 
-import Collection.Collection;
 import Config.Configuration;
+import Collection.Collection;
 
 import java.io.File;
+import java.sql.Array;
 import java.util.Objects;
-import java.util.Vector;
+import java.util.ArrayList;
 
 public class Database {
     String name;
-    Vector<Collection> collections;
+    ArrayList<Collection> collections;
 
     public Database(String name){
         this.name = name;
-        collections = new Vector<>();
+        collections = new ArrayList<>();
         String databasePath = Configuration.DATA_PATH + name + "/";
         File databaseDir = new File(databasePath);
         for (File file: Objects.requireNonNull(databaseDir.listFiles())){
@@ -29,6 +30,7 @@ public class Database {
 
     public Collection getCollection(String name){
         for (Collection collection: collections){
+            System.out.println(collection.getName());
             if ((name + ".json").equals(collection.getName()))
                 return collection;
         }
